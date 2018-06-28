@@ -91,3 +91,17 @@ def build_vocab(sentences):
     vocabulay_inv = {value: key for key, value in vocabulay.items()}
 
     return [vocabulay, vocabulay_inv]
+
+def build_index_sentence(sentences, vocabulary):
+    # x = []
+    # for sen in sentences:
+    #     one_sen = []
+    #     for word in sen:
+    #         one_sen.append(vocabulary[word])
+    #     x.append(one_sen)
+    # return np.array(x)
+
+    # write above code as one line
+    x = np.array([[vocabulary[word] for word in sen] for sen in sentences])
+    return x
+

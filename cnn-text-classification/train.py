@@ -35,15 +35,10 @@ print("The sequence length is: ", len(x_text[0]))
 # Build vocabulary
 vocabulary, vocabulary_inv = data_helpers.build_vocab(x_text)
 
-for i, item in enumerate(vocabulary.items()):
-    if i > 5:
-        break
-    print(item)
+# Represent sentence with word index, using word index to represent a sentence
+x = data_helpers.build_index_sentence(x_text, vocabulary)
+y = y.argmax(axis=1) # y: [1, 1, 1, ...., 0, 0, 0]. 1 for positive, 0 for negative
 
-for i, item in enumerate(vocabulary_inv.items()):
-    if i > 5:
-        break
-    print(item)
 
 
 
