@@ -39,6 +39,20 @@ vocabulary, vocabulary_inv = data_helpers.build_vocab(x_text)
 x = data_helpers.build_index_sentence(x_text, vocabulary)
 y = y.argmax(axis=1) # y: [1, 1, 1, ...., 0, 0, 0]. 1 for positive, 0 for negative
 
+# Shuffle data
+np.random.seed(42)
+shuffle_indices = np.random.permutation(np.arange(len(y)))
+x_shuffled = x[shuffle_indices]
+y_shuffled = y[shuffle_indices]
+
+# Split train and test
+# TODO: training_rate could be set by user as a parameter
+training_rate = 0.9
+train_len = int(len(y) * training_rate)
+x_train = x_shuffled[:train_len]
+y_train = y_shuffled[:train_len]
+x_test = x_shuffled[train_len:]
+y_test = y_shuffled[train_len:]
 
 
 
