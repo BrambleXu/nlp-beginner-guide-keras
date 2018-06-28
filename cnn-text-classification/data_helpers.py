@@ -59,3 +59,16 @@ def load_data_and_labels(positive_data_file, negtive_data_file):
     return x_text, y
 
 
+def pad_sentences(sentences, padding_word='<PAD/>'):
+    """
+    :param sentences: sentences as list of words,  [['i', 'am', is'], ['word', 'is', 'too', 'long'], ...,]
+    :return: pad sentence to longest length, [['i', 'am', is', '<PAD>', '<PAD>'], ['word', 'is', 'too', 'long', '<PAD>'], ...,]
+    """
+    sequence_length = max(len(sen) for sen in sentences)
+    padded_sentences = []
+    for i in range(len(sentences)):
+        sentence = sentences[i]
+        num_padding = sequence_length - len(sentence)
+        new_sentence = sentence + [padding_word] * num_padding
+        padded_sentences.append(new_sentence)
+    return padded_sentences

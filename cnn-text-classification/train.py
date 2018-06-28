@@ -26,10 +26,12 @@ negtive_data_file = "./data/rt-polaritydata/rt-polarity.neg"
 # Load data
 print("Loading data...")
 x_text, y = data_helpers.load_data_and_labels(positive_data_file, negtive_data_file)
-# x_test
-print(x_text[:3])
-print(y[:3])
 
+# Pad sentence
+print("Padding sentences...")
+x_text = data_helpers.pad_sentences(x_text)
+print("The sequence length is: ", len(x_text[0]))
+# print(x_test[:3])
 
 
 
