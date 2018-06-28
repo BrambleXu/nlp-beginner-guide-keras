@@ -31,9 +31,19 @@ x_text, y = data_helpers.load_data_and_labels(positive_data_file, negtive_data_f
 print("Padding sentences...")
 x_text = data_helpers.pad_sentences(x_text)
 print("The sequence length is: ", len(x_text[0]))
-# print(x_test[:3])
 
+# Build vocabulary
+vocabulary, vocabulary_inv = data_helpers.build_vocab(x_text)
 
+for i, item in enumerate(vocabulary.items()):
+    if i > 5:
+        break
+    print(item)
+
+for i, item in enumerate(vocabulary_inv.items()):
+    if i > 5:
+        break
+    print(item)
 
 
 

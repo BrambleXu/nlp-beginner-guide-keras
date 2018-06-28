@@ -72,3 +72,22 @@ def pad_sentences(sentences, padding_word='<PAD/>'):
         new_sentence = sentence + [padding_word] * num_padding
         padded_sentences.append(new_sentence)
     return padded_sentences
+
+
+def build_vocab(sentences):
+    """
+    :param sentences:  sentences after padding
+    :return:
+        vocabulary: a dict object, key is word and value is index. e.g. {'i': 0, 'am':1}
+        vocabulary_inv: a dict object, the inverse of vocabulary. e.g. {0: 'i', 1:'am'}
+    """
+    # Count words
+    word_counts = Counter(itertools.chain(*sentences))
+    # Sort the word as frequency order
+    vocabulay_inv = [x[0] for x in word_counts.most_common()]
+    # Build vocabulary, word: index
+    vocabulay = {word: i for i, word in enumerate(vocabulay_inv)}
+    # Build inverse vocabulary, index: word
+    vocabulay_inv = {value: key for key, value in vocabulay.items()}
+
+    return [vocabulay, vocabulay_inv]
