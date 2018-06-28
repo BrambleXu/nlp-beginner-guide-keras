@@ -55,7 +55,16 @@ x_test = x_shuffled[train_len:]
 y_test = y_shuffled[train_len:]
 
 
+#========================end preprocess data ========================
+# For this point, we have x_train, y_train, x_test,
+# y_test, vocabulary_inv for later use
 
+# Output shape
+print('x_train shape: ', x_train.shape)
+print('x_test shape:', x_test.shape)
+print('Vocabulary Size: {:d}'.format(len(vocabulary_inv)))
+
+#
 
 
 
