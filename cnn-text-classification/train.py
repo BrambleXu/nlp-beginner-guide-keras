@@ -1,9 +1,7 @@
 #======================== import module order as three level========================
 import numpy as np
 import data_helpers
-
-
-
+from word2vec import train_word2vec
 
 
 
@@ -64,8 +62,16 @@ print('x_train shape: ', x_train.shape)
 print('x_test shape:', x_test.shape)
 print('Vocabulary Size: {:d}'.format(len(vocabulary_inv)))
 
-#
+# Word2Vec parameters (see train_word2vec)
+embedding_dim = 50
+min_word_count = 1
+context = 10
 
+#Prepare embedding layer weights for not-static model
+embedding_weights = train_word2vec(np.vstack((x_train, x_test)), vocabulary_inv, num_features=embedding_dim,
+                                   min_word_count=min_word_count, context=context)
+
+print(embedding_weights[565]) # 565 is the index word rock
 
 
 
