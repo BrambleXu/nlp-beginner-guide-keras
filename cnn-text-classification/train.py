@@ -2,7 +2,7 @@
 import numpy as np
 import data_helpers
 from word2vec import train_word2vec
-
+from text_cnn import create_model
 
 
 #======================== command line flags parser  ========================
@@ -71,8 +71,24 @@ context = 10
 embedding_weights = train_word2vec(np.vstack((x_train, x_test)), vocabulary_inv, num_features=embedding_dim,
                                    min_word_count=min_word_count, context=context)
 
-print(embedding_weights[565]) # 565 is the index word rock
 
+#===========================create model====================
+# Model Hyperparameters
+embedding_dim = 50
+filter_sizes = (3, 8)
+num_filters = 10
+dropout_prob = (0.5, 0.8)
+hidden_dims = 50
+vocab_size = len(vocabulary_inv)
 
+# Create model
+sequence_length = x_test.shape[1]  # 56
+model = create_model(vocab_size, embedding_dim, filter_sizes, num_filters, dropout_prob, hidden_dims, sequence_length)
 
+# Initialize weights with word2vec
+weights = np.array([v for v in embedding_weights.values()])
+print("Initializing embedding layer with word2vec weights, shape", weights.shape)
+embedding_layer = model.get_layer("embedding_layer")
+embedding_layer.set_weights([weights])
 
+print(model.summary())
