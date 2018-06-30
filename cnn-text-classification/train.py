@@ -3,7 +3,7 @@ import numpy as np
 import data_helpers
 from word2vec import train_word2vec
 from text_cnn import create_model
-
+from keras.callbacks import EarlyStopping
 
 #======================== command line flags parser  ========================
 
@@ -80,6 +80,8 @@ num_filters = 10
 dropout_prob = (0.5, 0.8)
 hidden_dims = 50
 vocab_size = len(vocabulary_inv)
+batch_size = 32
+num_epochs = 10
 
 # Create model
 sequence_length = x_test.shape[1]  # 56
@@ -91,4 +93,13 @@ print("Initializing embedding layer with word2vec weights, shape", weights.shape
 embedding_layer = model.get_layer("embedding_layer")
 embedding_layer.set_weights([weights])
 
-print(model.summary())
+# Train model with Early Stopping
+earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
+model.fit(x_train, y_train, batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper],
+          validation_data=(x_test, y_test), verbose=2)
+
+# Predict
+prediction = model.predict(x_test)
+print(prediction.shape)
+
+
