@@ -9,15 +9,14 @@ What you can learn in this implementation:
 - Save and load a keras model
 - Use tensorboard to visualize your neural networks
 
-## Requirements
+## Notebooks
 
-- Python 3.6
-- Keras 2.1.6
-- Tensorflow 1.8
-- tensorboard 1.8
-- scikit-learn 0.19.1
-- numpy 1.14.3
-- h5py 2.8
+In the notebook, you can check the output in each phase. I hope this could help you better understand what happend.
+
+- [preprocess](https://github.com/BrambleXu/nlp-beginner-guide-keras/blob/master/cnn-text-classification/notebooks/preprocess.ipynb)
+- [word2vec](https://github.com/BrambleXu/nlp-beginner-guide-keras/blob/master/cnn-text-classification/notebooks/word2vec.ipynb)
+- [some experiments](https://github.com/BrambleXu/nlp-beginner-guide-keras/blob/master/cnn-text-classification/notebooks/text_cnn-parameter_changed.ipynb)
+- [base model](https://github.com/BrambleXu/nlp-beginner-guide-keras/blob/master/cnn-text-classification/notebooks/train_base-baseline_non_static_cnn.ipynb)
 
 ## Two versions
 
@@ -38,12 +37,6 @@ Because the dimensions in the pooling layer are different between Global Pooling
 It is very important to have a clear understanding for the dimension changes. You can find it in the `create_base_model()` of `text_cnn.py`.
 
 
-## Notebooks
-
-- Preprocess
-- word2vec
-- base model
-- some experiments
 
 ## Training
 
@@ -63,6 +56,7 @@ python train.py
 ```
 After this, you will get new log files in the floder `logs`.
 
+
 ## Visualization
 
 I already save the training logs in floder `logs`, you can run the command blow to see the visualization in tensorboard.
@@ -71,6 +65,16 @@ In the terminal, you current directory should be `cnn-text-classification`.
 tensorboard --logdir logs/
 ```
 Then open the browser and input the `http://localhost:xxxx/`. xxxx is the port, you can find it in the terminal.
+
+## Requirements
+
+- Python 3.6
+- Keras 2.1.6
+- Tensorflow 1.8
+- tensorboard 1.8
+- scikit-learn 0.19.1
+- numpy 1.14.3
+- h5py 2.8
 
 
 ## References
