@@ -68,9 +68,7 @@ def create_model(vocab_size, embedding_dim, filter_sizes, num_filters, dropout_p
 
     concat1max = Concatenate()(conv_blocks)  # (?, 510)
     concat1max = Dropout(dropout_prob[1])(concat1max) # 0.8
-    output_layer = Dense(hidden_dims, activation='relu',
-                         kernel_regularizer=regularizers.l2(0.01),
-                         bias_regularizer=regularizers.l1(0.01))(concat1max) # (?, 50)
+    output_layer = Dense(hidden_dims, activation='relu')(concat1max) # (?, 50)
     output_layer = Dense(1, activation='sigmoid')(output_layer) # (?, 1)
 
     model = Model(inputs=input_layer, outputs=output_layer)

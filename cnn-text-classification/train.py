@@ -1,18 +1,12 @@
 #======================== import module order as three level========================
+import os
+from os.path import join, exists, split
 import numpy as np
 import data_helpers
 from word2vec import train_word2vec
 from text_cnn import create_model
 from keras.callbacks import EarlyStopping
-
-#======================== command line flags parser  ========================
-
-
-
-
-
-
-
+from keras.models import model_from_json
 
 #======================== preprocess data ========================
 #
@@ -96,10 +90,59 @@ embedding_layer.set_weights([weights])
 # Train model with Early Stopping
 earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
 model.fit(x_train, y_train, batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper],
-          validation_data=(x_test, y_test), verbose=2)
+          validation_split=0.1, verbose=2)
 
-# Predict
+# Evaluate
+score = model.evaluate(x_test, y_test)
+print(score)
+
+#=============use sklearn to evaluate=============
+
+from sklearn.metrics import accuracy_score
+
+# Prediciton
 prediction = model.predict(x_test)
-print(prediction.shape)
+prediction = prediction.flatten()
+prediction = np.where(prediction > 0.5, 1, 0)
+score = accuracy_score(y_test, prediction)
+print(score)
 
+#================Save and Load=================
+
+# Save model
+model_dir = 'models'
+model_name = 'non_static_cnn.json'
+model_name = join(model_dir, model_name)
+model_weights = 'non_static_cnn.h5'
+model_weights = join(model_dir, model_weights)
+
+if not exists(model_dir):
+    os.mkdir(model_dir)
+
+if not exists(model_name):
+    print('Saving non static cnn model and its in \'%s\'' % split(model_name)[0])
+    # Serialize model to JSON
+    model_json = model.to_json()
+    with open(model_name, 'w') as json_file:
+        json_file.write(model_json)
+    # Serialize weights to HDF5
+    model.save_weights(model_weights)
+
+# Load json and create model
+with open(model_name, 'r') as json_file:
+    loaded_model_json = json_file.read()
+loaded_model = model_from_json(loaded_model_json)
+# Load weights into new model
+loaded_model.load_weights(model_weights)
+print('Loaded existing model from \'%s\'' % model_name)
+
+
+from sklearn.metrics import accuracy_score
+
+# Prediciton
+prediction = loaded_model.predict(x_test)
+prediction = prediction.flatten()
+prediction = np.where(prediction > 0.5, 1, 0)
+score = accuracy_score(y_test, prediction)
+print(score)
 

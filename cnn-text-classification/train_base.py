@@ -114,20 +114,19 @@ if not exists(model_name):
         json_file.write(model_json)
     # Serialize weights to HDF5
     model.save_weights(model_weights)
-else:
-    # Load json and create model
-    with open(model_name, 'r') as json_file:
-        loaded_model_json = json_file.read()
-    loaded_model = model_from_json(loaded_model_json)
-    # Load weights into new model
-    loaded_model.load_weights(model_weights)
-    print('Loaded existing model from \'%s\'' % model_name)
+
+# Load json and create model
+with open(model_name, 'r') as json_file:
+    loaded_model_json = json_file.read()
+loaded_model = model_from_json(loaded_model_json)
+# Load weights into new model
+loaded_model.load_weights(model_weights)
+print('Loaded existing model from \'%s\'' % model_name)
 
 # Evaluate
 loaded_model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 score = loaded_model.evaluate(x_test, y_test)  # Must compile before evaluate
 print(score)
-
 
 
 # #=============use sklearn to evaluate=============
