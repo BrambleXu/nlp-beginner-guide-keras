@@ -20,7 +20,7 @@ In the notebook, you can check the output in each phase. I hope this could help 
 
 ## Two versions
 
-Here I implement one baseline version and modified version. The parameters of baseline version are similar with the setting in Kim's paper.
+Here I implement one baseline version and modified version. The parameters of baseline version are similar with the setting in Kim's paper. Both epoch are 10.
 
 | Setting        | Modified           | Baseline  |
 | ------------- |:-------------:| :-----:|
@@ -29,7 +29,7 @@ Here I implement one baseline version and modified version. The parameters of ba
 | Filter Number | 10 |   100  |
 | Pooling | Max Pooling      |   Global Pooling(1-max pooling) |
 | Result | |    |
-| Training Time(10 epoch) |  636s |  86s  |
+| Training Time(10 epoch) | 86s  |   636s |
 | Accuracy |  0.73 |  0.7  |
 
 The reason I create the baseline is mainly to show the implementation part of 1-max pooling.
