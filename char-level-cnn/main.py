@@ -17,18 +17,21 @@ FLAGS = parser.parse_args()
 if __name__ == "__main__":
     # Load configurations
     config = json.load(open("config.json"))
+    # Change the model name
+    config['model'] = config[FLAGS.model] # equal to config['char_cnn_hang']
+
     # Load training data
-    training_data = Data(data_source=config["data"]["data_source"],
+    training_data = Data(data_source=config["data"]["training_data_source"],
                          alphabet=config["data"]["alphabet"],
                          input_size=config["data"]["input_size"],
-                         num_of_classes=config["data"]["no_of_classes"])
+                         num_of_classes=config["data"]["num_of_classes"])
     training_data.load_data()
     training_inputs, training_labels = training_data.get_all_data()
     # Load validation data
-    validation_data = Data(data_source=config["data"]["data_source"],
+    validation_data = Data(data_source=config["data"]["validation_data_source"],
                            alphabet=config["data"]["alphabet"],
                            input_size=config["data"]["input_size"],
-                           num_of_classes=config["data"]["no_of_classes"])
+                           num_of_classes=config["data"]["num_of_classes"])
     validation_data.load_data()
     validation_inputs, validation_labels = validation_data.get_all_data()
 
