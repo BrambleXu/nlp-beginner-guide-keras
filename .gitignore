@@ -70,3 +70,6 @@ target/
 
 .idea/
 .DS_Store
+
+### Ignore glove floder
+glove.6B/
