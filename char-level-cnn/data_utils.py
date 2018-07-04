@@ -23,6 +23,7 @@ class Data(object):
         self.alphabet_size = len(self.alphabet)
         self.dict = {}  # Maps each character to an integer
         self.no_of_classes = num_of_classes
+        self.dict['UNK'] = 0
         for idx, char in enumerate(self.alphabet):
             self.dict[char] = idx + 1
         self.length = input_size
@@ -85,4 +86,5 @@ class Data(object):
             c = s[-i]
             if c in self.dict:
                 str2idx[i - 1] = self.dict[c]
+            # else, 'UNK' return str2idx all elements are zero
         return str2idx
