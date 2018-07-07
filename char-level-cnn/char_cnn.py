@@ -10,8 +10,8 @@ from keras.layers import Input, Embedding, Activation, Flatten, Dense
 from keras.layers import Conv1D, MaxPooling1D, Dropout
 from keras.models import Model
 
-train_data_source = '../data/ag_news_csv/train.csv'
-test_data_source = '../data/ag_news_csv/test.csv'
+train_data_source = './data/ag_news_csv/train.csv'
+test_data_source = './data/ag_news_csv/test.csv'
 
 train_df = pd.read_csv(train_data_source, header=None)
 test_df = pd.read_csv(test_data_source, header=None)
@@ -74,6 +74,22 @@ test_classes = to_categorical(test_class_list)
 
 
 # =====================Char CNN=======================
+# parameter
+input_size = 1014
+vocab_size = len(tk.word_index)
+embedding_size = 69
+conv_layers = [[256, 7, 3],
+               [256, 7, 3],
+               [256, 3, -1],
+               [256, 3, -1],
+               [256, 3, -1],
+               [256, 3, 3]]
+
+fully_connected_layers = [1024, 1024]
+num_of_classes = 4
+dropout_p = 0.5
+optimizer = 'adam'
+loss = 'categorical_crossentropy'
 
 # Embedding weights
 embedding_weights = []  # (70, 69)
@@ -85,6 +101,7 @@ for char, i in tk.word_index.items():  # from index 1 to 69
     embedding_weights.append(onehot)
 
 embedding_weights = np.array(embedding_weights)
+print('Load')
 
 # Embedding layer Initialization
 embedding_layer = Embedding(vocab_size + 1,
@@ -115,15 +132,24 @@ model = Model(inputs=inputs, outputs=predictions)
 model.compile(optimizer=optimizer, loss=loss, metrics=['accuracy'])  # Adam, categorical_crossentropy
 model.summary()
 
-# 1000 training samples and 100 testing samples
+# # 1000 training samples and 100 testing samples
+# indices = np.arange(train_data.shape[0])
+# np.random.shuffle(indices)
+#
+# x_train = train_data[indices][:1000]
+# y_train = train_classes[indices][:1000]
+#
+# x_test = test_data[:100]
+# y_test = test_classes[:100]
+
 indices = np.arange(train_data.shape[0])
 np.random.shuffle(indices)
 
-x_train = train_data[indices][:1000]
-y_train = train_classes[indices][:1000]
+x_train = train_data[indices]
+y_train = train_classes[indices]
 
-x_test = test_data[:100]
-y_test = test_classes[:100]
+x_test = test_data
+y_test = test_classes
 
 # Training
 model.fit(x_train, y_train,
