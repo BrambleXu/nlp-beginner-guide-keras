@@ -1,6 +1,6 @@
 In this repo, I will implement some NLP models for the nlp beginner learner. In each project folder contains a notebook floder to show the output in detail. I think this would help the beginner to understand what happens in the model.
 
-I will list what resource used for each model implementation. All project based on Python3.6 and Keras2.1.6 with TensorFlow1.8 backend. 
+I will list what resource used for each model implementation. All project based on Python3.6 and Keras2.1.6 with TensorFlow1.8 backend.
 
 
 ## Deep Models for NLP beginners
@@ -35,7 +35,15 @@ What you can learn in this implementation:
 - Keras 2.1.6
 - Tensorflow 1.8
 - tensorboard 1.8
+- gensim 3.4.0
 - scikit-learn 0.19.1
 - numpy 1.14.3
 - h5py 2.8
 
+I use `conda` to construct the environment, and I highly recommend you do it too. After clone this project, you can run the following command to construct the whole environment. Make sure you already install the `conda` tool.
+
+`conda env create -f py36.yml`
+
+After install the whole environment, you can use following command to switch to the `py36` environment.
+
+`source activate py36`
