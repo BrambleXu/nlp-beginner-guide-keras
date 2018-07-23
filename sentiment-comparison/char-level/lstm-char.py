@@ -85,7 +85,7 @@ embedding_layer = Embedding(vocab_size + 1,
                             weights=[embedding_weights],
                             mask_zero=True)
 
-#===================CNN Model===================
+#===================LSTM Model===================
 # Model Hyperparameters
 embedding_dim = 70
 vocab_size = len(tk.word_index)
