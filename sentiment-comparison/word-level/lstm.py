@@ -7,7 +7,7 @@ from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 
 from keras.layers import Input, Embedding, Activation, Flatten, Dense, Concatenate
-from keras.layers import Conv1D, MaxPooling1D, Dropout
+from keras.layers import Conv1D, MaxPooling1D, Dropout, LSTM
 from keras.models import Model
 
 #==================Preprocess===================
@@ -73,8 +73,8 @@ embedding_dim = 50
 embedding_matrix = np.zeros((len(tk.word_index)+1, embedding_dim)) # fist row represent padding with 0
 for word, i in tk.word_index.items():  # tk.word_index contain 18765 words
     embedding_vector = embeddings_index.get(word) # if not find in the dict, return None
-    if embedding_vector is not None:
-        embedding_matrix[i] = embedding_vector
+    if word in embeddings_index:
+        embedding_matrix[i] = embeddings_index.get(word)
     else: # For the unknown word in tk.word_index, assign UNK vector
         embedding_vector = embeddings_index.get('UNK')
         embedding_matrix[i] = embedding_vector
@@ -82,8 +82,6 @@ for word, i in tk.word_index.items():  # tk.word_index contain 18765 words
 #===================CNN Model===================
 # Model Hyperparameters
 embedding_dim = 50
-filter_sizes = (3, 8)
-num_filters = 10
 vocab_size = len(tk.word_index)
 dropout_prob = 0.5
 hidden_dims = 50
@@ -96,36 +94,28 @@ sequence_length = 56
 embedding_layer = Embedding(vocab_size+1,
                             embedding_dim,
                             input_length=sequence_length,
-                            weights=[embedding_matrix])
+                            weights=[embedding_matrix],
+                            mask_zero=True)
 
 # Create model
 # Input
-input_shape = (sequence_length,)
-input_layer = Input(shape=input_shape, name='input_layer')  # (?, 56)
-
+inputs = Input(shape=(sequence_length,))
 # Embedding
-embedded = embedding_layer(input_layer) # (batch_size, sequence_length, output_dim)=(?, 56, 50),
+embedded_sequence = embedding_layer(inputs)
+x = LSTM(128, return_sequences=True, activation='relu')(embedded_sequence)
+x = LSTM(128, return_sequences=False, activation='relu')(x)
+x = Dense(128, activation='relu')(x)
+x = Dropout(dropout_prob)(x)
+x = Dense(32, activation='relu')(x)
+x = Dropout(dropout_prob)(x)
+prediction = Dense(2, activation='sigmoid')(x)
 
-# CNN, iterate filter_size
-conv_blocks = []
-for fz in filter_sizes:
-    conv = Conv1D(filters=num_filters,
-                  kernel_size=fz,  # 3 means 3 words
-                  padding='valid',  # valid means no padding
-                  strides=1,
-                  activation='relu',
-                  use_bias=True)(embedded)
-    conv = MaxPooling1D(pool_size=2)(conv) # (?, 27, 10), (?, 24, 10)
-    conv = Flatten()(conv) # (?, 270), (?, 240)
-    conv_blocks.append(conv) # [(?, 270), (?, 240)]
 
-concat1max = Concatenate()(conv_blocks)  # (?, 510)
-concat1max = Dropout(dropout_prob)(concat1max) # 0.5
-output_layer = Dense(hidden_dims, activation='relu')(concat1max) # (?, 50)
-output_layer = Dense(2, activation='sigmoid')(output_layer) # (?, 2)
+model = Model(inputs=inputs, outputs=prediction)
+model.compile(optimizer='adam',
+              loss='binary_crossentropy',
+              metrics=['accuracy'])
 
-model = Model(inputs=input_layer, outputs=output_layer)
-model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(model.summary())
 
 
@@ -138,4 +128,4 @@ model.fit(x_train, y_train,batch_size=batch_size, epochs=num_epochs, callbacks=[
 
 # Evaluate
 score = model.evaluate(x_test, y_test)
-print('test_loss, test_acc: 'score)
+print('test_loss, test_acc: ', score)
