@@ -1,8 +1,30 @@
 
+# Survey of Word/Character/Subword level for Sentiment Analysis
+
+In the three projects we have done before, we take three approaches for the represent the text.
+- Word level for [Cnn-text-classification](https://github.com/BrambleXu/nlp-beginner-guide-keras/tree/master/cnn-text-classification)(word2vec), [word_embedding](https://github.com/BrambleXu/nlp-beginner-guide-keras/tree/master/word_embedding)(glove)
+- Character level for [char-level-cnn](https://github.com/BrambleXu/nlp-beginner-guide-keras/tree/master/char-level-cnn)
+- Subword level for [subword-level](https://github.com/BrambleXu/nlp-beginner-guide-keras/tree/master/subword-level)
+
+After do some research in the ACL2018, we found that most works still choose word level for the sentiment analysis. Dose this means word representation is better character/subword representation?
+In order to analyze the performance of these representation for the sentiment analysis task, we do some experiments for the the comparison.
+
+Here we choose two datasets, the sentence polarity dataset and twitter dataset.
 
 
+## Sentiment Analysis in Movie Review
 
-Word level CNN
+
+We choose the sentence polarity dataset as the dataset, and it is a binary classification problem.
+You can find more information about the dataset [here](https://github.com/abromberg/sentiment_analysis/blob/master/polarityData/rt-polaritydata.README.1.0.txt).
+The total number of samples is 10662.
+
+We take 8635 as training data, 960 as validation data, and 1067 as test data.
+
+
+### Experiment results (Word/Character/Subword & CNN/LSTM)
+
+**Word level CNN**
 
 ```
 Train on 8635 samples, validate on 960 samples
@@ -29,7 +51,7 @@ Epoch 00009: early stopping
 test_loss, test_acc: [0.8930901289265516, 0.7535145266545411]
 ```
 
-Word level CNN
+**Word level LSTM**
 ```
 Train on 8635 samples, validate on 960 samples
 Epoch 1/10
@@ -53,7 +75,10 @@ Epoch 00008: early stopping
 test_loss, test_acc:  [1.5654271245561366, 0.7403936269357032]
 ```
 
-Char level CNN
+**Char level CNN**
+
+As for the embedding wegihts, we first use the one-hot encoding.
+
 ```
 Train on 8635 samples, validate on 960 samples
 Epoch 1/10
@@ -83,7 +108,9 @@ test_loss, test_acc:  [0.6921688347859369, 0.5993439547347487]
 Char level CNN with Random Embedding Weights
 `test_loss, test_acc:  [0.6814835615379294, 0.6002811620809704]`
 
-Char level LSTM
+We can see the random embedding weights is better than the one-hot encoding wegihts.
+
+**Char level LSTM**
 ```
 Train on 8635 samples, validate on 960 samples
 Epoch 1/10
@@ -110,7 +137,7 @@ Epoch 10/10
 test_loss, test_acc:  [0.6856050494126102, 0.5459231490159325]
 ```
 
-Subword level CNN
+**Subword level CNN**
 ```
 Train on 8635 samples, validate on 960 samples
 Epoch 1/10
@@ -136,7 +163,7 @@ Epoch 00009: early stopping
 test_loss, test_acc:  [0.9087518500522016, 0.7357075913218326]
 ```
 
-Subword level LSTM
+**Subword level LSTM**
 ```
 Train on 8635 samples, validate on 960 samples
 Epoch 1/10
@@ -159,3 +186,4 @@ Epoch 00008: early stopping
 1067/1067 [==============================] - 5s 5ms/step
 test_loss, test_acc:  [1.2638732995960125, 0.7225866916029947]
 ```
+
