@@ -2,6 +2,7 @@ import os
 import numpy as np
 import pandas as pd
 import data_helpers
+import pickle
 from data_helpers import TrainValTensorBoard
 from keras.callbacks import EarlyStopping
 from keras.preprocessing.text import Tokenizer
@@ -63,7 +64,7 @@ print('Validation data size is: ', x_test.shape)
 glove_path = 'glove.6B'
 # read glove to embedding
 embeddings_index = {}
-f = open(os.path.join(glove_path, 'glove.6B.50d.txt'))
+f = open(os.path.join(glove_path, 'glove.6B.50d.txt'), 'rb')
 for line in f:
     values = line.split()
     word = values[0]
@@ -140,9 +141,18 @@ print(model.summary())
 earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
 tensorboard = TrainValTensorBoard(log_dir='./logs', histogram_freq=0,
                           write_graph=True, write_images=True)
-model.fit(x_train, y_train,batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper, tensorboard],
+history = model.fit(x_train, y_train,batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper, tensorboard],
           validation_split=0.1, shuffle=True, verbose=1)
 
 # Evaluate
 score = model.evaluate(x_test, y_test)
 print('test_loss, test_acc: ', score)
+
+# Write result to txt
+result = 'test_loss, test_acc: {0}'.format(score)
+f = open('result.txt', 'wb')
+f.write(result)
+f.close()
+
+with open('train_history.pickle', 'wb') as handle:
+    pickle.dump(history.history, handle, protocol=pickle.HIGHEST_PROTOCOL)

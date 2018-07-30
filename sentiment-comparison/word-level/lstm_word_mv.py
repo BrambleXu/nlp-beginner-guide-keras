@@ -79,7 +79,7 @@ for word, i in tk.word_index.items():  # tk.word_index contain 18765 words
         embedding_vector = embeddings_index.get('UNK')
         embedding_matrix[i] = embedding_vector
 
-#===================CNN Model===================
+#===================LSTM Model===================
 # Model Hyperparameters
 embedding_dim = 50
 vocab_size = len(tk.word_index)
