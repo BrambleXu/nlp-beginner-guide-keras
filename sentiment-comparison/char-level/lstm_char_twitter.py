@@ -100,7 +100,8 @@ sequence_length = 336
 # Embedding layer Initialization
 embedding_layer = Embedding(vocab_size + 1,
                             embedding_dim,
-                            input_length=sequence_length)
+                            input_length=sequence_length,
+                            mask_zero=True)
 
 # Create model
 # Input
@@ -110,9 +111,9 @@ embedded_sequence = embedding_layer(inputs)
 x = LSTM(128, return_sequences=True, activation='relu')(embedded_sequence)
 x = LSTM(128, return_sequences=False, activation='relu')(x)
 x = Dropout(dropout_prob)(x)
-x = Dense(128, activation='relu')(x)
-x = Dropout(dropout_prob)(x)
 x = Dense(32, activation='relu')(x)
+x = Dropout(dropout_prob)(x)
+x = Dense(128, activation='relu')(x)
 prediction = Dense(2, activation='sigmoid')(x)
 
 

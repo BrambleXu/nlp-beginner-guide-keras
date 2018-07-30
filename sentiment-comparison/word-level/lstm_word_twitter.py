@@ -123,9 +123,9 @@ embedded_sequence = embedding_layer(inputs)
 x = LSTM(128, return_sequences=True, activation='relu')(embedded_sequence)
 x = LSTM(128, return_sequences=False, activation='relu')(x)
 x = Dropout(dropout_prob)(x)
-x = Dense(128, activation='relu')(x)
-x = Dropout(dropout_prob)(x)
 x = Dense(32, activation='relu')(x)
+x = Dropout(dropout_prob)(x)
+x = Dense(128, activation='relu')(x)
 prediction = Dense(2, activation='sigmoid')(x)
 
 
