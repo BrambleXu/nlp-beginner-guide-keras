@@ -108,6 +108,11 @@ test_loss, test_acc:  [0.6921688347859369, 0.5993439547347487]
 Char level CNN with Random Embedding Weights
 `test_loss, test_acc:  [0.6814835615379294, 0.6002811620809704]`
 
+Char level CNN with Char Embedding Weights:
+`test_loss, test_acc:  [0.7042091524031191, 0.515932521254746]]`
+
+According to the result of different embedding weights, we choose `Random Embedding Weights` for Char level experiments.
+
 We can see the random embedding weights is better than the one-hot encoding wegihts.
 
 **Char level LSTM**
