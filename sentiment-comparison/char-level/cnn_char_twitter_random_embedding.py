@@ -1,27 +1,38 @@
 import os
 import numpy as np
+import pandas as pd
 import data_helpers
+import pickle
 from data_helpers import TrainValTensorBoard
 from keras.callbacks import EarlyStopping
 from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
-
+from keras.utils import to_categorical
 from keras.layers import Input, Embedding, Activation, Flatten, Dense, Concatenate
 from keras.layers import Conv1D, MaxPooling1D, Dropout
 from keras.models import Model
+from keras.callbacks import CSVLogger
 
 #==================Preprocess===================
 
 # Load data
-positive_data_file = "../data/rt-polaritydata/rt-polarity.pos"
-negtive_data_file = "../data/rt-polaritydata/rt-polarity.neg"
+csv = '../data/twitter/clean_tweet_char.csv'
+df = pd.read_csv(csv, index_col=0)
+print(df.head())
 
-print("Loading data...")
-x_text, y = data_helpers.load_data_and_labels(positive_data_file, negtive_data_file)
-# =======================Convert string to index================
+# Delete Null row
+df = df.dropna()
+print(df.target.value_counts())
+
+
+x_text = df['text'].values
+y = df['target'].values
+y = to_categorical(y)
+
 # Tokenizer
 tk = Tokenizer(num_words=None, char_level=True, oov_token='UNK')
 tk.fit_on_texts(x_text)
+
 # If we already have a character list, then replace the tk.word_index
 # If not, just skip below part
 
@@ -40,16 +51,14 @@ tk.word_index[tk.oov_token] = max(char_dict.values()) + 1
 
 # Convert string to index
 sequences = tk.texts_to_sequences(x_text)
-
 # See char level length
 length = [len(sent) for sent in sequences]
-print('The max length is: ', max(length)) # 266
+print('The max length is: ', max(length))
 print('The min length is: ', min(length))
 print('The average length is: ', sum(length)/len(length))
 
 # Padding
-sequences_pad = pad_sequences(sequences, maxlen=266, padding='post')
-print("The whole data size is: ", sequences_pad.shape)
+sequences_pad = pad_sequences(sequences, maxlen=336, padding='post')
 
 # Shuffle data
 np.random.seed(42)
@@ -71,12 +80,12 @@ print('Validation data size is: ', x_test.shape)
 vocab_size = len(tk.word_index) # 70 (69 char, 1 UNK)
 
 # # Embedding weights
-embedding_dim = 70
+embedding_dim = 50
 # zero_vector = np.zeros((1, embedding_dim)) # Represent pad vector
 # embedding_weights = np.concatenate((zero_vector, np.identity(vocab_size)), axis=0) # (71, 70)
 
 from keras.layers import Embedding
-input_size = 266
+input_size = 336
 
 # Embedding layer Initialization
 embedding_layer = Embedding(vocab_size + 1,
@@ -85,15 +94,15 @@ embedding_layer = Embedding(vocab_size + 1,
 
 #===================CNN Model===================
 # Model Hyperparameters
-embedding_dim = 70
+embedding_dim = 50
 filter_sizes = (3, 8)
 num_filters = 10
 vocab_size = len(tk.word_index)
 dropout_prob = 0.5
 hidden_dims = 50
 batch_size = 32
-num_epochs = 10
-sequence_length = 266
+num_epochs = 40
+sequence_length = 336
 
 
 # Create model
@@ -128,12 +137,23 @@ print(model.summary())
 
 
 # Train model with Early Stopping
-earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
+earlystopper = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
 tensorboard = TrainValTensorBoard(log_dir='./logs', histogram_freq=0,
                           write_graph=True, write_images=True)
-model.fit(x_train, y_train,batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper, tensorboard],
-          validation_split=0.1, shuffle=True, verbose=2)
+csv_logger = CSVLogger('log.csv', append=False, separator=';')
+
+history = model.fit(x_train, y_train, batch_size=batch_size, epochs=60, callbacks=[earlystopper, tensorboard, csv_logger],
+          validation_split=0.1, shuffle=True, verbose=1)
 
 # Evaluate
 score = model.evaluate(x_test, y_test)
 print('test_loss, test_acc: ', score)
+
+# Write result to txt
+result = 'test_loss, test_acc: {0}'.format(score)
+f = open('result.txt', 'w')
+f.write(result)
+f.close()
+
+# with open('train_history.pickle', 'w') as handle:
+#     pickle.dump(history.history, handle, protocol=pickle.HIGHEST_PROTOCOL)
