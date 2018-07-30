@@ -62,10 +62,10 @@ y_test = y_shuffled[train_len:]
 # Because LSTM take mush time to train
 # Here we only take 10000 sample for train and 1000 to test
 # Just like the movie reviews
-x_train = x_train[:10000]
-y_train = y_train[:10000]
-x_test = x_test[:1000]
-y_test = y_test[:1000]
+x_train = x_train[:25000]
+y_train = y_train[:25000]
+x_test = x_test[:25000]
+y_test = y_test[:25000]
 print('Training data size is: ', x_train.shape)
 print('Validation data size is: ', x_test.shape)
 
