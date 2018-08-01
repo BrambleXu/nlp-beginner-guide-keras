@@ -133,7 +133,7 @@ print(model.summary())
 earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
 tensorboard = TrainValTensorBoard(log_dir='./logs', histogram_freq=0,
                           write_graph=True, write_images=True)
-model.fit(x_train, y_train,batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper, tensorboard],
+model.fit(x_train, y_train,batch_size=batch_size, epochs=1, callbacks=[earlystopper, tensorboard],
           validation_split=0.1, shuffle=True, verbose=2)
 
 # Evaluate
