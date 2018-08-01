@@ -68,9 +68,6 @@ print('The average length is: ', sum(length)/len(length))
 from keras.preprocessing.sequence import pad_sequences
 train_data = pad_sequences(train_sentences, maxlen=253, padding='post')
 
-# Convert to numpy array
-train_data = np.array(train_data)
-
 # Shuffle data
 np.random.seed(42)
 shuffle_indices = np.random.permutation(np.arange(len(y)))
