@@ -78,10 +78,10 @@ y_test = y_shuffled[train_len:]
 # Because LSTM take mush time to train
 # Here we only take 10000 sample for train and 1000 to test
 # Just like the movie reviews
-x_train = x_train[:10000]
-y_train = y_train[:10000]
-x_test = x_test[:1000]
-y_test = y_test[:1000]
+x_train = x_train[:25000]
+y_train = y_train[:25000]
+x_test = x_test[:25000]
+y_test = y_test[:25000]
 print('Training data size is: ', x_train.shape)
 print('Validation data size is: ', x_test.shape)
 
@@ -108,12 +108,14 @@ embedding_layer = Embedding(vocab_size + 1,
 inputs = Input(shape=(sequence_length,))
 # Embedding
 embedded_sequence = embedding_layer(inputs)
-x = LSTM(128, return_sequences=True, activation='relu')(embedded_sequence)
-x = LSTM(128, return_sequences=False, activation='relu')(x)
-x = Dropout(dropout_prob)(x)
-x = Dense(32, activation='relu')(x)
+x = LSTM(256, dropout=0.2, recurrent_dropout=0.2,
+         return_sequences=True, activation='relu')(embedded_sequence)
+x = LSTM(256, dropout=0.2, recurrent_dropout=0.2,
+         return_sequences=False, activation='relu')(x)
 x = Dropout(dropout_prob)(x)
 x = Dense(128, activation='relu')(x)
+x = Dropout(dropout_prob)(x)
+x = Dense(32, activation='relu')(x)
 prediction = Dense(2, activation='sigmoid')(x)
 
 
@@ -131,7 +133,7 @@ earlystopper = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
 #                           write_graph=True, write_images=True)
 csv_logger = CSVLogger('log.csv', append=False, separator=';')
 
-history = model.fit(x_train, y_train, batch_size=batch_size, epochs=num_epochs, callbacks=[earlystopper, csv_logger],
+history = model.fit(x_train, y_train, batch_size=batch_size, epochs=40, callbacks=[earlystopper, csv_logger],
           validation_split=0.1, shuffle=True, verbose=1)
 
 # Evaluate
