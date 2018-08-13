@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from keras.models import Model
 from keras.layers import Input, LSTM, Dense, CuDNNLSTM
-from keras.callbacks import EarlyStopping
+from keras.callbacks import EarlyStopping, ModelCheckpoint
 
 df = pd.read_csv('../data/eng-katakana.csv', header=None, names=['eng', 'katakana'])
 
@@ -15,6 +15,7 @@ for name in input_texts:
 input_characters = sorted(list(input_characters))
 
 target_texts = list(df['katakana'].values)
+target_texts = ['\t' + text + '\n' for text in target_texts]
 target_characters = set()
 for name in target_texts:
     for char in name:
@@ -86,17 +87,25 @@ model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
 
 # Run training
-earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
+earlystopper = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
+checkpoint = ModelCheckpoint( filepath='my_model.h5', monitor='val_loss', save_best_only=True)
 
 model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
           batch_size=batch_size,
           epochs=epochs,
           validation_split=0.2,
-          callbacks=[earlystopper])
+          callbacks=[earlystopper, checkpoint])
 
 
-# Save model
-model.save('s2s.h5')
+
+# cu_dnnlstm can not be saved as json
+# model_json = model.to_json()
+# with open("s2s.json", "w") as json_file:
+#     json_file.write(model_json)
+
+model.save_weights("s2s.h5")
+print("Saved model to disk")
+
 
 # Next: inference mode (sampling).
 # Here's the drill:
@@ -166,7 +175,7 @@ def decode_sequence(input_seq):
     return decoded_sentence
 
 
-for seq_index in range(100):
+for seq_index in range(20):
     # Take one sequence (part of the training set)
     # for trying out decoding.
     input_seq = encoder_input_data[seq_index: seq_index + 1]
