@@ -1,185 +1,143 @@
-import pandas as pd
+from __future__ import print_function
+
+import os
 import numpy as np
+import pandas as pd
+
 from keras.models import Model
-from keras.layers import Input, LSTM, Dense, CuDNNLSTM
-from keras.callbacks import EarlyStopping, ModelCheckpoint
-
-df = pd.read_csv('../data/eng-katakana.csv', header=None, names=['eng', 'katakana'])
-
-input_texts = list(df['eng'].values)
-input_characters = set()
-for name in input_texts:
-    for char in name:
-        if char not in input_characters:
-            input_characters.add(char)
-input_characters = sorted(list(input_characters))
-
-target_texts = list(df['katakana'].values)
-target_texts = ['\t' + text + '\n' for text in target_texts]
-target_characters = set()
-for name in target_texts:
-    for char in name:
-        if char not in target_characters:
-            target_characters.add(char)
-target_characters = sorted(list(target_characters))
-
-num_encoder_tokens = len(input_characters)
-num_decoder_tokens = len(target_characters)
-max_encoder_seq_length = max([len(name) for name in input_texts])
-max_decoder_seq_length = max([len(name) for name in target_texts])
-
-print('Number of samples:', len(input_texts))
-print('Number of unique input tokens:', num_encoder_tokens)
-print('Number of unique output tokens:', num_decoder_tokens)
-print('Max sequence length for inputs:', max_encoder_seq_length)
-print('Max sequence length for outputs:', max_decoder_seq_length)
-
-# Token to index dictionary
-input_token_index = dict((char, i) for i, char in enumerate(input_characters))
-target_token_index = dict((char, i) for i, char in enumerate(target_characters))
-
-encoder_input_data = np.zeros(
-    (len(input_texts), max_encoder_seq_length, num_encoder_tokens),
-    dtype='float32')
-decoder_input_data = np.zeros(
-    (len(input_texts), max_decoder_seq_length, num_decoder_tokens),
-    dtype='float32')
-decoder_target_data = np.zeros(
-    (len(input_texts), max_decoder_seq_length, num_decoder_tokens),
-    dtype='float32')
-
-for i, (input_text, target_text) in enumerate(zip(input_texts, target_texts)):
-    for t, char in enumerate(input_text):
-        encoder_input_data[i, t, input_token_index[char]] = 1.
-    for t, char in enumerate(target_text):
-        # decoder_target_data is ahead of decoder_input_data by one timestep
-        decoder_input_data[i, t, target_token_index[char]] = 1.
-        if t > 0:
-            # decoder_target_data will be ahead by one timestep
-            # and will not include the start character.
-            decoder_target_data[i, t - 1, target_token_index[char]] = 1.
-
-batch_size = 64  # Batch size for training.
-epochs = 100  # Number of epochs to train for.
-latent_dim = 256  # Latent dimensionality of the encoding space.
-
-# Define an input sequence and process it.
-encoder_inputs = Input(shape=(None, num_encoder_tokens))
-encoder = CuDNNLSTM(latent_dim, return_state=True)
-encoder_outputs, state_h, state_c = encoder(encoder_inputs)
-# We discard `encoder_outputs` and only keep the states.
-encoder_states = [state_h, state_c]
-
-# Set up the decoder, using `encoder_states` as initial state.
-decoder_inputs = Input(shape=(None, num_decoder_tokens))
-# We set up our decoder to return full output sequences,
-# and to return internal states as well. We don't use the
-# return states in the training model, but we will use them in inference.
-decoder_lstm = CuDNNLSTM(latent_dim, return_sequences=True, return_state=True)
-decoder_outputs, _, _ = decoder_lstm(decoder_inputs,
-                                     initial_state=encoder_states)
-decoder_dense = Dense(num_decoder_tokens, activation='softmax')
-decoder_outputs = decoder_dense(decoder_outputs)
-
-# Define the model that will turn
-# `encoder_input_data` & `decoder_input_data` into `decoder_target_data`
-model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy')
-
-# Run training
-earlystopper = EarlyStopping(monitor='val_loss', patience=3, verbose=1)
-checkpoint = ModelCheckpoint( filepath='my_model.h5', monitor='val_loss', save_best_only=True)
-
-model.fit([encoder_input_data, decoder_input_data], decoder_target_data,
-          batch_size=batch_size,
-          epochs=epochs,
-          validation_split=0.2,
-          callbacks=[earlystopper, checkpoint])
+from keras.layers import Input, Embedding, LSTM, TimeDistributed, Dense
+from keras.callbacks import EarlyStopping
+from keras.preprocessing.text import Tokenizer
+from keras.preprocessing.sequence import pad_sequences
 
 
+data = pd.read_csv('../data/eng-katakana.csv', header=None, names=['eng', 'katakana'])
+data = data.sample(frac=1, random_state=0)
 
-# cu_dnnlstm can not be saved as json
-# model_json = model.to_json()
-# with open("s2s.json", "w") as json_file:
-#     json_file.write(model_json)
+data_input = [s.lower() for s in data['eng']]
+data_output = [s for s in data['katakana']]
 
-model.save_weights("s2s.h5")
-print("Saved model to disk")
-
-
-# Next: inference mode (sampling).
-# Here's the drill:
-# 1) encode input and retrieve initial decoder state
-# 2) run one step of decoder with this initial state
-# and a "start of sequence" token as target.
-# Output will be the next target token
-# 3) Repeat with the current target token and current states
-
-# Define sampling models
-encoder_model = Model(encoder_inputs, encoder_states)
-
-decoder_state_input_h = Input(shape=(latent_dim,))
-decoder_state_input_c = Input(shape=(latent_dim,))
-decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-decoder_outputs, state_h, state_c = decoder_lstm(
-    decoder_inputs, initial_state=decoder_states_inputs)
-decoder_states = [state_h, state_c]
-decoder_outputs = decoder_dense(decoder_outputs)
-decoder_model = Model(
-    [decoder_inputs] + decoder_states_inputs,
-    [decoder_outputs] + decoder_states)
-
-# Reverse-lookup token index to decode sequences back to
-# something readable.
-reverse_input_char_index = dict(
-    (i, char) for char, i in input_token_index.items())
-reverse_target_char_index = dict(
-    (i, char) for char, i in target_token_index.items())
+print(data_input[0:3])
+print(data_output[0:3])
 
 
-def decode_sequence(input_seq):
-    # Encode the input as state vectors.
-    states_value = encoder_model.predict(input_seq)
+# Split train and test
+training_rate = 0.7
+train_len = int(len(data) * training_rate)
+training_input = data_input[:train_len]
+training_output = data_output[:train_len]
+validation_input = data_input[train_len:]
+validation_output = data_output[train_len:]
 
-    # Generate empty target sequence of length 1.
-    target_seq = np.zeros((1, 1, num_decoder_tokens))
-    # Populate the first character of target sequence with the start character.
-    target_seq[0, 0, target_token_index['\t']] = 1.
+print(len(training_input))
+print(len(validation_input))
 
-    # Sampling loop for a batch of sequences
-    # (to simplify, here we assume a batch of size 1).
-    stop_condition = False
-    decoded_sentence = ''
-    while not stop_condition:
-        output_tokens, h, c = decoder_model.predict(
-            [target_seq] + states_value)
+START_CHAR_CODE = 1
 
-        # Sample a token
-        sampled_token_index = np.argmax(output_tokens[0, -1, :])
-        sampled_char = reverse_target_char_index[sampled_token_index]
-        decoded_sentence += sampled_char
-
-        # Exit condition: either hit max length
-        # or find stop character.
-        if (sampled_char == '\n' or
-           len(decoded_sentence) > max_decoder_seq_length):
-            stop_condition = True
-
-        # Update the target sequence (of length 1).
-        target_seq = np.zeros((1, 1, num_decoder_tokens))
-        target_seq[0, 0, sampled_token_index] = 1.
-
-        # Update states
-        states_value = [h, c]
-
-    return decoded_sentence
+def encode_characters(titles):
+    count = 2
+    encoding = {}
+    decoding = {1: 'START'}
+    for c in set([c for title in titles for c in title]):
+        encoding[c] = count
+        decoding[count] = c
+        count += 1
+    return encoding, decoding, count
 
 
-for seq_index in range(20):
-    # Take one sequence (part of the training set)
-    # for trying out decoding.
-    input_seq = encoder_input_data[seq_index: seq_index + 1]
-    decoded_sentence = decode_sequence(input_seq)
-    print('-')
-    print('Input sentence:', input_texts[seq_index])
-    print('Decoded sentence:', decoded_sentence)
+input_encoding, input_decoding, input_dict_size = encode_characters(data_input)
+output_encoding, output_decoding, output_dict_size = encode_characters(data_output)
+
+
+print('English character dict size:', input_dict_size)
+print('Katakana character dict size:', output_dict_size)
+
+# print(input_encoding)
+# print(input_decoding)
+
+def transform(encoding, data, vector_size):
+    transformed_data = np.zeros(shape=(len(data), vector_size))
+    for i in range(len(data)):
+        for j in range(min(len(data[i]), vector_size)):
+            transformed_data[i][j] = encoding[data[i][j]]
+    return transformed_data
+
+INPUT_LENGTH = 20
+OUTPUT_LENGTH = 20
+
+encoded_training_input = transform(input_encoding, training_input, vector_size=INPUT_LENGTH)
+encoded_training_output = transform(output_encoding, training_output, vector_size=OUTPUT_LENGTH)
+encoded_validation_input = transform(input_encoding, validation_input, vector_size=INPUT_LENGTH)
+encoded_validation_output = transform(output_encoding, validation_output, vector_size=OUTPUT_LENGTH)
+
+
+# Encoder Input
+training_encoder_input = encoded_training_input
+
+# Decoder Input (need padding py START_CHAR_CODE)
+training_decoder_input = np.zeros_like(encoded_training_output)
+training_decoder_input[:, 1:] = encoded_training_output[:,:-1] # offset one timestpe
+training_decoder_input[:, 0] = START_CHAR_CODE # first timestep is 1, means START
+
+# Decoder Output (one-hot encode)
+training_decoder_output = np.eye(output_dict_size)[encoded_training_output.astype('int')]
+
+print('encoder input', training_encoder_input[:1])
+print('decoder input', training_decoder_input[:1])
+print('decoder output', training_decoder_output[:1].argmax(axis=2))
+print('decoder output (one-hot)', training_decoder_output[:1])
+
+# print('input', encoded_training_input)
+# print('output', encoded_training_output)
+
+# Model
+encoder_input = Input(shape=(INPUT_LENGTH,))
+decoder_input = Input(shape=(OUTPUT_LENGTH,))
+
+encoder_input = Input(shape=(INPUT_LENGTH,))
+decoder_input = Input(shape=(OUTPUT_LENGTH,))
+
+# Encoder
+encoder = Embedding(input_dict_size, 64, input_length=INPUT_LENGTH, mask_zero=True)(encoder_input)
+encoder = LSTM(64)(encoder)
+
+decoder = Embedding(output_dict_size, 64, input_length=OUTPUT_LENGTH, mask_zero=True)(decoder_input)
+decoder = LSTM(64, return_sequences=True)(decoder, initial_state=[encoder, encoder])
+decoder = TimeDistributed(Dense(output_dict_size, activation="softmax"))(decoder)
+
+model = Model(inputs=[encoder_input, decoder_input], outputs=[decoder])
+model.compile(optimizer='adam', loss='binary_crossentropy')
+
+earlystopper = EarlyStopping(monitor='val_loss', patience=5, verbose=1)
+
+model.fit(x=[training_encoder_input, training_decoder_input], y=[training_decoder_output],
+      validation_split=0.11,
+      verbose=1,
+      batch_size=64,
+      epochs=20,
+      callbacks=[earlystopper])
+
+
+
+def generate(text):
+    encoder_input = transform(input_encoding, [text.lower()], 20)
+    decoder_input = np.zeros(shape=(len(encoder_input), OUTPUT_LENGTH))
+    decoder_input[:,0] = START_CHAR_CODE
+    for i in range(1, OUTPUT_LENGTH):
+        output = model.predict([encoder_input, decoder_input]).argmax(axis=2)
+        decoder_input[:,i] = output[:,i]
+    return decoder_input[:,1:]
+
+def decode(decoding, sequence):
+    text = ''
+    for i in sequence:
+        if i == 0:
+            break
+        text += output_decoding[i]
+    return text
+
+def to_katakana(text):
+    decoder_output = generate(text)
+    return decode(output_decoding, decoder_output[0])
+
+
