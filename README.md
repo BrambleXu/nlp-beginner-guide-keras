@@ -29,6 +29,20 @@ What you can learn in this implementation:
 - Constructing the char-cnn-zhang model, [article](https://medium.com/@zhuixiyou/character-level-cnn-with-keras-50391c3adf33), [notebook](https://github.com/BrambleXu/nlp-beginner-guide-keras/blob/f2fdfdd20e73ae16208b3ac63962a769fac51065/char-level-cnn/notebooks/char-cnn-zhang-with-keras-pipeline.ipynb)
 
 
+#### [sentiment-comparison](https://github.com/BrambleXu/nlp-beginner-guide-keras/tree/master/sentiment-comparison)
+
+In this project, I use three embedding levels, word/character/subword, to represent the text. And test them with two model, CNN and LSTM.
+
+According to the result, subword-level embedding is useful for the dataset with many unknown words. The CNN not only achieve the better performance, but also take less training time. So if you want to implement a simple and powerful sentiment classification model, I highly recommend to use the CNN model.
+
+Read the complete report on my blog: [The Best Embedding Method for Sentiment Classification](https://medium.com/@zhuixiyou/blog-md-34c5d082a8c5)
+
+#### [bilstm-crf](https://github.com/BrambleXu/nlp-beginner-guide-keras/tree/master/bilstm-crf)
+
+I create this project to learn the NER task and implement the BiLSTM-CRF model by using [keras-contrib](https://github.com/keras-team/keras-contrib).
+- [notebook](https://github.com/BrambleXu/nlp-beginner-guide-keras/blob/master/bilstm-crf/notebooks/bi-lstm-crf.ipynb)
+
+
 ## Requirements
 
 - Python 3.6
