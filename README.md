@@ -61,3 +61,16 @@ I use `conda` to construct the environment, and I highly recommend you do it too
 After install the whole environment, you can use following command to switch to the `py36` environment.
 
 `source activate py36`
+
+## Bibtex
+
+Please use the following bibtex, when you refer my implementations in your papers.
+
+```
+@misc{liang2018kerasnlpmodel,
+    title  = {Keras Implementations for NLP Models},
+    author = {Xu, Liang},
+    url    = {https://github.com/BrambleXu/nlp-beginner-guide-keras},
+    year   = {2018}
+}
+```
